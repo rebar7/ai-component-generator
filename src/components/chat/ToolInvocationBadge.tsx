@@ -1,10 +1,14 @@
 "use client";
 
-import { ToolInvocation } from "ai";
+import type { DynamicToolUIPart, ToolUIPart, UITools } from "ai";
+import { getToolName } from "ai";
 import { Loader2 } from "lucide-react";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyToolPart = DynamicToolUIPart | ToolUIPart<UITools>;
+
 interface ToolInvocationBadgeProps {
-  toolInvocation: ToolInvocation;
+  toolInvocation: AnyToolPart;
 }
 
 function getFilename(path: unknown): string {
@@ -12,9 +16,9 @@ function getFilename(path: unknown): string {
   return path.split("/").filter(Boolean).pop() ?? path;
 }
 
-function getLabel(toolInvocation: ToolInvocation): string {
-  const { toolName } = toolInvocation;
-  const args = toolInvocation.args as Record<string, unknown>;
+function getLabel(toolInvocation: AnyToolPart): string {
+  const toolName = getToolName(toolInvocation);
+  const args = (toolInvocation as { input?: Record<string, unknown> }).input ?? {};
   const command = args?.command as string | undefined;
   const filename = getFilename(args?.path);
 
@@ -45,7 +49,7 @@ function getLabel(toolInvocation: ToolInvocation): string {
 }
 
 export function ToolInvocationBadge({ toolInvocation }: ToolInvocationBadgeProps) {
-  const isDone = toolInvocation.state === "result" && toolInvocation.result != null;
+  const isDone = toolInvocation.state === "output-available";
   const label = getLabel(toolInvocation);
 
   return (

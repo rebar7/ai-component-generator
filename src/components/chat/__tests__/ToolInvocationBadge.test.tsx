@@ -1,6 +1,6 @@
 import { describe, test, expect, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
-import type { ToolInvocation } from "ai";
+import type { DynamicToolUIPart } from "ai";
 import { ToolInvocationBadge } from "../ToolInvocationBadge";
 
 afterEach(() => {
@@ -12,14 +12,24 @@ function makeInvocation(
   args: Record<string, unknown>,
   state: "call" | "result" = "result",
   result: unknown = "ok"
-): ToolInvocation {
+): DynamicToolUIPart {
+  if (state === "result") {
+    return {
+      type: "dynamic-tool",
+      toolCallId: "test-id",
+      toolName,
+      state: "output-available",
+      input: args,
+      output: result,
+    } as DynamicToolUIPart;
+  }
   return {
+    type: "dynamic-tool",
     toolCallId: "test-id",
     toolName,
-    args,
-    state,
-    result: state === "result" ? result : undefined,
-  } as ToolInvocation;
+    state: "input-available",
+    input: args,
+  } as DynamicToolUIPart;
 }
 
 describe("ToolInvocationBadge — label text", () => {
